@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | Your Storefront</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .dashboard {
+            padding: 40px 0;
+            min-height: 70vh;
+        }
+        
+        .welcome-section {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 40px;
+            border-radius: 12px;
+            margin-bottom: 40px;
+        }
+        
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+        
+        .dashboard-card {
+            background-color: var(--white);
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: var(--shadow-light);
+        }
+        
+        .logout-btn {
+            background-color: #f8f9fa;
+            color: var(--text-dark);
+            border: 1px solid #dee2e6;
+        }
+        
+        .logout-btn:hover {
+            background-color: #e9ecef;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <a href="../index.html" class="logo">
+                <div class="logo-icon">YS</div>
+                <h1>Your Storefront</h1>
+            </a>
+            <ul class="nav-links">
+                <li><a href="dashboard.html">Dashboard</a></li>
+                <li><a href="#products">Products</a></li>
+                <li><a href="#orders">Orders</a></li>
+                <li><a href="#customers">Customers</a></li>
+                <li><a href="#" id="logoutBtn" class="btn logout-btn" style="padding: 8px 16px;">Logout</a></li>
+            </ul>
+        </div>
+    </header>
+
+    <!-- Dashboard -->
+    <main class="dashboard">
+        <div class="container">
+            <div class="welcome-section">
+                <h1>Welcome to Your Dashboard</h1>
+                <p id="userWelcome">Loading user data...</p>
+                <p>Manage your store, view analytics, and track orders from this central dashboard.</p>
+            </div>
+            
+            <div class="dashboard-grid">
+                <div class="dashboard-card">
+                    <h3><i class="fas fa-box" style="color: var(--primary-color); margin-right: 10px;"></i> Products</h3>
+                    <p style="font-size: 2rem; font-weight: bold; margin: 15px 0;">24</p>
+                    <p>Active products in your store</p>
+                    <a href="#products" class="btn btn-secondary" style="margin-top: 15px; display: inline-block;">Manage Products</a>
+                </div>
+                
+                <div class="dashboard-card">
+                    <h3><i class="fas fa-shopping-cart" style="color: var(--primary-color); margin-right: 10px;"></i> Orders</h3>
+                    <p style="font-size: 2rem; font-weight: bold; margin: 15px 0;">156</p>
+                    <p>Orders this month</p>
+                    <a href="#orders" class="btn btn-secondary" style="margin-top: 15px; display: inline-block;">View Orders</a>
+                </div>
+                
+                <div class="dashboard-card">
+                    <h3><i class="fas fa-users" style="color: var(--primary-color); margin-right: 10px;"></i> Customers</h3>
+                    <p style="font-size: 2rem; font-weight: bold; margin: 15px 0;">89</p>
+                    <p>Active customers</p>
+                    <a href="#customers" class="btn btn-secondary" style="margin-top: 15px; display: inline-block;">View Customers</a>
+                </div>
+                
+                <div class="dashboard-card">
+                    <h3><i class="fas fa-chart-line" style="color: var(--primary-color); margin-right: 10px;"></i> Revenue</h3>
+                    <p style="font-size: 2rem; font-weight: bold; margin: 15px 0;">$4,250</p>
+                    <p>Revenue this month</p>
+                    <a href="#analytics" class="btn btn-secondary" style="margin-top: 15px; display: inline-block;">View Analytics</a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Your Storefront</h3>
+                    <p>A modern e-commerce platform for businesses of all sizes.</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Dashboard Links</h3>
+                    <ul>
+                        <li><a href="dashboard.html">Dashboard</a></li>
+                        <li><a href="#products">Products</a></li>
+                        <li><a href="#settings">Settings</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Need Help?</h3>
+                    <p><i class="fas fa-envelope"></i> support@yourstorefront.com</p>
+                    <p>Available 24/7 for premium users</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2023 Your Storefront. All rights reserved. | <span id="userEmailDisplay">User: Loading...</span></p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Dashboard functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get user data from localStorage
+            const userName = localStorage.getItem('userName') || 'User';
+            const userEmail = localStorage.getItem('userEmail') || 'nakija540@gmail.com';
+            
+            // Display user data
+            document.getElementById('userWelcome').textContent = `Hello, ${userName}!`;
+            document.getElementById('userEmailDisplay').textContent = `User: ${userEmail}`;
+            
+            // Logout functionality
+            document.getElementById('logoutBtn').addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Clear login data
+                localStorage.removeItem('isLoggedIn');
+                localStorage.removeItem('userName');
+                localStorage.removeItem('userEmail');
+                
+                // Redirect to landing page (contains login modal)
+                window.location.href = '../index.html';
+            });
+            
+            // Check if user is logged in
+            const isLoggedIn = localStorage.getItem('isLoggedIn');
+            if (isLoggedIn !== 'true') {
+                // Send user to the landing page where the login modal is embedded
+                window.location.href = '../index.html';
+            }
+        });
+    </script>
+</body>
+</html>

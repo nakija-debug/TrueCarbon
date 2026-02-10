@@ -1,0 +1,9 @@
+fastapi
+uvicorn[standard]
+fastapi-users
+sqlalchemy
+databases
+aiosqlite
+python-multipart
+passlib[bcrypt]
+email-validator
