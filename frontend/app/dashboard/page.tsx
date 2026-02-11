@@ -1,3 +1,6 @@
+'use client';
+
+import { useState } from 'react';
 import dynamic from 'next/dynamic';
 import PortfolioView from '@/components/PortfolioView';
 import KPICards from '@/components/KPICards';
