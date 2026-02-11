@@ -52,8 +52,16 @@ async def init_db() -> None:
     if "postgresql" not in settings.DATABASE_URL:
         return
 
-    async with engine.begin() as conn:
-        # Enable PostGIS extension
-        await conn.exec_driver_sql("CREATE EXTENSION IF NOT EXISTS postgis;")
-        # Enable PostGIS topology extension
-        await conn.exec_driver_sql("CREATE EXTENSION IF NOT EXISTS postgis_topology;")
+    try:
+        async with engine.begin() as conn:
+            # Enable PostGIS extension (requires SUPERUSER privileges)
+            # On Render free tier, this might fail - that's okay
+            await conn.exec_driver_sql("CREATE EXTENSION IF NOT EXISTS postgis;")
+            # Enable PostGIS topology extension
+            await conn.exec_driver_sql("CREATE EXTENSION IF NOT EXISTS postgis_topology;")
+            print("PostGIS extensions created successfully")
+    except Exception as e:
+        # Log the error but don't fail startup
+        # PostGIS extensions might already exist or user might not have permissions
+        print(f"Note: Could not create PostGIS extensions (this is okay if they already exist): {e}")
+        pass
