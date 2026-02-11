@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import { ReactQueryProvider } from '@/lib/query-provider';
 import { DashboardProvider } from '@/lib/contexts/dashboard-context';
-import '@/styles/globals.css';
 
 export const metadata: Metadata = {
   title: 'TrueCarbon - Carbon Credit MRV Dashboard',
