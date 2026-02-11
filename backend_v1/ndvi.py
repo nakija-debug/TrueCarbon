@@ -1,28 +1,9 @@
 # ndvi.py
 # This file talks to Google Earth Engine and calculates NDVI
+# DEPRECATED: Use backend/app/services/ndvi_service.py instead
 
 import ee
 import datetime
-
-
-def init_earth_engine():
-    """
-    Safely initialize Google Earth Engine.
-    Runs ONLY when needed (on first API call).
-    
-    Features:
-    - Avoids crash on import
-    - Works in reload mode
-    - Production-safe
-    - Handles auth errors gracefully
-    """
-    try:
-        # Try normal initialization
-        ee.Initialize(project="student-research-carbon")
-    except Exception:
-        # If not authenticated, force auth
-        ee.Authenticate()
-        ee.Initialize(project="student-research-carbon")
 
 
 def calculate_ndvi_time_series(farm_geojson, start_date, end_date):
@@ -34,10 +15,12 @@ def calculate_ndvi_time_series(farm_geojson, start_date, end_date):
 
     OUTPUT:
     - List of {date, ndvi}
-    """
     
-    # 🔑 Initialize EE only when NDVI is requested
-    init_earth_engine()
+    NOTE: Earth Engine initialization must be performed via the unified
+    backend's EarthEngineManager singleton (backend/app/services/earth_engine.py)
+    to ensure thread-safe, production-grade initialization with proper error
+    handling and retry logic.
+    """
 
     # Convert GeoJSON to Earth Engine Geometry
     farm_geometry = ee.Geometry.Polygon(farm_geojson["coordinates"])
