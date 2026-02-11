@@ -15,8 +15,3 @@ services:
         value: "1"
       - key: CORS_ORIGINS
         value: https://yourdomain.com
-databases:
-  - name: truecarbon-postgres
-    databaseName: truecarbon
-    user: truecarbon_user
-    region: us-east
