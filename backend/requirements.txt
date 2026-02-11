@@ -25,6 +25,8 @@ geemap==0.30.0
 # Data Processing
 numpy==1.26.3
 pandas==2.1.4
+matplotlib==3.8.2
+Pillow==10.2.0
 
 # Reporting (for subsequent phases)
 fpdf==1.7.2

@@ -16,6 +16,10 @@ class CarbonDataPoint(BaseModel):
     carbon_total_tonnes: float  # Total carbon for farm
     co2_tonnes_ha: float  # CO2 equivalent per hectare
     co2_total_tonnes: float  # Total CO2 equivalent for farm
+    confidence_score: Optional[float] = None  # Confidence score (0-100, higher = more confident)
+    confidence_interval_lower: Optional[float] = None  # 95% CI lower bound (CO2 tonnes/ha)
+    confidence_interval_upper: Optional[float] = None  # 95% CI upper bound (CO2 tonnes/ha)
+    std_dev: Optional[float] = None  # Standard deviation from Monte Carlo simulation
 
 
 class CarbonStatistics(BaseModel):
@@ -29,6 +33,8 @@ class CarbonStatistics(BaseModel):
     min_ndvi: float
     max_ndvi: float
     mean_ndvi: float
+    mean_confidence_score: Optional[float] = None  # Average confidence score across all data points
+    overall_std_dev: Optional[float] = None  # Average standard deviation across data points
 
 
 class CarbonRequest(BaseModel):
@@ -72,11 +78,15 @@ class CarbonMetadata(BaseModel):
 
     model_version: str
     model_name: str
-    agb_coefficient_a: float
-    agb_exponent_b: float
+    agb_coefficient_a: Optional[float] = None
+    agb_exponent_b: Optional[float] = None
     carbon_fraction: float
     co2_conversion_factor: float
     assumptions: List[str]
+    methodology: Optional[str] = None  # e.g., "Monte Carlo Simulation (10,000 iterations)"
+    uncertainty_method: Optional[str] = None  # e.g., "95% Confidence Intervals"
+    land_use_class: Optional[str] = None  # Dominant LULC class if Tier 2 used
+    monte_carlo_iterations: Optional[int] = None  # Number of MC iterations
 
 
 class CarbonResponse(BaseModel):

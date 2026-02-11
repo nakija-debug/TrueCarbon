@@ -10,6 +10,7 @@ from app.models.base import BaseModel
 if TYPE_CHECKING:
     from app.models.company import Company
     from app.models.measurement import Measurement
+    from app.models.report import Report
 
 
 class Farm(BaseModel):
@@ -61,6 +62,13 @@ class Farm(BaseModel):
         cascade="all, delete-orphan",
     )
     """Time-series measurements (NDVI, LULC, etc.)"""
+
+    reports: Mapped[list["Report"]] = relationship(
+        "Report",
+        back_populates="farm",
+        cascade="all, delete-orphan",
+    )
+    """Generated reports"""
 
     def to_geojson(self) -> dict:
         """

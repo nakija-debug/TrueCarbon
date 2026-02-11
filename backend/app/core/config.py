@@ -36,6 +36,14 @@ class Settings(BaseSettings):
     GEE_RETRY_DELAY: int = 1
     """Initial retry delay in seconds (exponential backoff applied)"""
 
+    # Report Generation
+    REPORTS_DIR: str = "reports"
+    """Directory path for storing generated reports"""
+    REPORTS_BASE_URL: str = "http://localhost:8000"
+    """Base URL for report download links"""
+    MAX_REPORT_SIZE_MB: int = 50
+    """Maximum allowed report file size in megabytes"""
+
     # CORS
     CORS_ORIGINS: List[str] = ["http://localhost:3000"]
 
