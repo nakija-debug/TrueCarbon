@@ -11,7 +11,6 @@ aiosqlite==0.19.0
 alembic==1.13.1
 geoalchemy2==0.14.3
 shapely==2.0.2
-numpy<2.0.0  # Required for shapely compatibility
 
 # Authentication & Security
 python-jose[cryptography]==3.3.0
@@ -19,14 +18,13 @@ passlib[bcrypt]==1.7.4
 python-multipart==0.0.6
 email-validator==2.1.0
 
-# Google Earth Engine & Geospatial
+# Google Earth Engine & Data Processing
 earthengine-api==0.1.384
-
-# Data Processing
-numpy<2.0.0  # Required for shapely compatibility
+google-auth==2.26.2
+numpy<2.0.0
 pandas==2.1.4
 
-# Reporting (for subsequent phases)
+# Reporting
 fpdf==1.7.2
 
 # Production Server
