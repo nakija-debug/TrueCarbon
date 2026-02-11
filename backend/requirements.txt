@@ -22,8 +22,8 @@ email-validator==2.1.0
 # geemap==0.30.0
 
 # Data Processing
-numpy==1.26.3
-pandas==2.1.4
+# numpy==1.26.3  # Commented out due to Python 3.13 compatibility issues
+# pandas==2.1.4  # Commented out due to Python 3.13 compatibility issues
 # matplotlib==3.8.2  # Optional visualization
 # Pillow==10.2.0     # Optional image processing
 
