@@ -1,10 +1,12 @@
-'use client';
-
-import { useState } from 'react';
+import dynamic from 'next/dynamic';
 import PortfolioView from '@/components/PortfolioView';
 import KPICards from '@/components/KPICards';
-import InteractiveMaps from '@/components/InteractiveMaps';
 import TimeControls from '@/components/TimeControls';
+
+const InteractiveMaps = dynamic(() => import('@/components/InteractiveMaps'), {
+  ssr: false,
+  loading: () => <div className="h-[600px] w-full animate-pulse rounded-xl bg-gray-200" />,
+});
 
 export default function Dashboard() {
   const [selectedDateRange, setSelectedDateRange] = useState({
