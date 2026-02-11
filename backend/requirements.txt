@@ -23,6 +23,8 @@ earthengine-api==0.1.384
 google-auth==2.26.2
 numpy<2.0.0
 pandas==2.1.4
+matplotlib==3.8.2  # Required for report charts
+Pillow==10.2.0     # Required for image processing in reports
 
 # Reporting
 fpdf==1.7.2
