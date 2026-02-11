@@ -5,6 +5,7 @@ from app.models.company import Company
 from app.models.user import User
 from app.models.farm import Farm
 from app.models.measurement import Measurement
+from app.models.report import Report
 
 __all__ = [
     "BaseModel",
@@ -12,4 +13,5 @@ __all__ = [
     "User",
     "Farm",
     "Measurement",
+    "Report",
 ]
