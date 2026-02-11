@@ -6,8 +6,6 @@ import axiosInstance from '@/lib/api-client';
 import type { KPIData, AlertData } from '@/types/dashboard';
 import type { DateRangeFilter } from '@/types/api';
 
-const DASHBOARD_ENDPOINT = '/api/dashboard';
-
 export const dashboardApi = {
   /**
    * Get KPI data with optional filters
