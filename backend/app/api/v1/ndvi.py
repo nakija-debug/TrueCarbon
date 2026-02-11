@@ -1,7 +1,9 @@
 """NDVI time-series endpoints."""
 
+import logging
 from datetime import datetime
-from fastapi import APIRouter, Depends, HTTPException, status
+from typing import Optional
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_
 
@@ -12,7 +14,10 @@ from app.models.farm import Farm
 from app.models.measurement import Measurement
 from app.schemas.ndvi import NDVIRequest, NDVIResponse, NDVIDataPoint
 from app.services.ndvi_service import NDVIService
+from app.services.carbon_service import CarbonService, CarbonCalculationError
 from app.services.earth_engine import EarthEngineManager
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/ndvi", tags=["ndvi"])
 
@@ -20,6 +25,7 @@ router = APIRouter(prefix="/ndvi", tags=["ndvi"])
 @router.post("/calculate", response_model=NDVIResponse, status_code=202)
 async def calculate_ndvi(
     request: NDVIRequest,
+    calculate_carbon: bool = Query(False, description="Also calculate carbon sequestration"),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user_db),
 ):
@@ -113,6 +119,57 @@ async def calculate_ndvi(
             stored_measurements.append(measurement)
 
         await db.commit()
+
+        # Optionally calculate carbon sequestration if requested
+        if calculate_carbon and ndvi_data:
+            try:
+                # Call carbon service to estimate sequestration from NDVI data
+                carbon_result = await CarbonService.estimate_carbon_sequestration_async(
+                    ndvi_data=ndvi_data,
+                    area_ha=farm.area_ha,
+                    start_date=request.start_date,
+                    end_date=request.end_date,
+                )
+
+                # Store carbon measurements in database
+                for data_point in carbon_result.get("data_points", []):
+                    measurement_date = data_point["date"]
+                    
+                    # Check if carbon measurement already exists
+                    existing = await db.execute(
+                        select(Measurement).where(
+                            and_(
+                                Measurement.farm_id == farm.id,
+                                Measurement.measurement_type == "carbon",
+                                Measurement.measurement_date == measurement_date,
+                            )
+                        )
+                    )
+                    if existing.scalar_one_or_none():
+                        continue
+
+                    carbon_measurement = Measurement(
+                        farm_id=farm.id,
+                        measurement_type="carbon",
+                        measurement_date=measurement_date,
+                        value=data_point["carbon_tonnes_ha"],
+                        std_dev=None,
+                        meta={
+                            "model": "Pan-tropical allometric equation",
+                            "model_version": carbon_result["metadata"]["version"],
+                            "agb_tonnes_ha": data_point["agb_tonnes_ha"],
+                            "co2_tonnes_ha": data_point["co2_tonnes_ha"],
+                            "ndvi_input": data_point["ndvi"],
+                            "coefficient_a": carbon_result["metadata"]["coefficient_a"],
+                            "coefficient_b": carbon_result["metadata"]["coefficient_b"],
+                        },
+                    )
+                    db.add(carbon_measurement)
+
+                await db.commit()
+            except CarbonCalculationError as e:
+                logger.warning(f"Carbon calculation failed for farm {farm.id}: {str(e)}")
+                # Don't fail the NDVI response, just log the carbon error
 
         # Calculate statistics
         if ndvi_data:

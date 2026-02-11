@@ -2,7 +2,7 @@
 
 from fastapi import APIRouter
 
-from app.api.v1 import auth, users, farms, ndvi
+from app.api.v1 import auth, users, farms, ndvi, carbon
 
 api_router = APIRouter()
 
@@ -11,6 +11,7 @@ api_router.include_router(auth.router, prefix="/auth", tags=["Authentication"])
 api_router.include_router(users.router, prefix="/users", tags=["Users"])
 api_router.include_router(farms.router)
 api_router.include_router(ndvi.router)
+api_router.include_router(carbon.router)
 
 
 @api_router.get("/status")
