@@ -2,7 +2,7 @@
 
 from typing import TYPE_CHECKING
 from enum import Enum
-import sqlalchemy
+import datetime
 from sqlalchemy import String, Float, Boolean, Integer, ForeignKey, JSON, Date
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -39,8 +39,8 @@ class Report(BaseModel):
     __tablename__ = "reports"
 
     farm_id: Mapped[int] = mapped_column(
-        sqlalchemy.Integer,
-        sqlalchemy.ForeignKey("farms.id", ondelete="CASCADE"),
+        Integer,
+        ForeignKey("farms.id", ondelete="CASCADE"),
         index=True,
         nullable=False,
     )
@@ -55,13 +55,13 @@ class Report(BaseModel):
     file_url: Mapped[str] = mapped_column(String(500), nullable=False)
     """URL for downloading the report"""
 
-    start_date: Mapped[sqlalchemy.date] = mapped_column(Date, nullable=False)
+    start_date: Mapped[datetime.date] = mapped_column(Date, nullable=False)
     """Start date of data included in report"""
 
-    end_date: Mapped[sqlalchemy.date] = mapped_column(Date, nullable=False)
+    end_date: Mapped[datetime.date] = mapped_column(Date, nullable=False)
     """End date of data included in report"""
 
-    metadata: Mapped[dict] = mapped_column(JSON, nullable=True)
+    report_metadata: Mapped[dict] = mapped_column(JSON, nullable=True)
     """JSON metadata for report parameters and generation details"""
 
     file_size: Mapped[int] = mapped_column(Integer, nullable=True)
