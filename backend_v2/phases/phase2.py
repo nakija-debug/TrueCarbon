@@ -1,12 +1,11 @@
 import ee
 import geemap
 
-# 1. Initialize (This stays at the top)
-try:
-    ee.Initialize(project='student-research-carbon')
-except:
-    ee.Authenticate()
-    ee.Initialize(project='student-research-carbon')
+# DEPRECATED: Use backend/app/services/lulc_service.py instead
+# NOTE: Earth Engine initialization must be performed via the unified
+# backend's EarthEngineManager singleton (backend/app/services/earth_engine.py)
+# to ensure thread-safe, production-grade initialization with proper error
+# handling and retry logic.
 
 # 2. DEFINE THE FUNCTION
 # Everything else must go INSIDE this function so the UI can call it.
