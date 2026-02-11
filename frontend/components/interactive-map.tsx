@@ -76,7 +76,7 @@ export function InteractiveMap() {
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-        <ZoomControl position="top-right" />
+        <ZoomControl position="topright" />
         <ScaleControl position="bottomleft" />
         {farmsGeoJSON && (
           <GeoJSON
