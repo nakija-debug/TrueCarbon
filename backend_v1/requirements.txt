@@ -1,6 +1,0 @@
-fastapi
-uvicorn
-earthengine-api
-geemap
-numpy
-pydantic

@@ -1,7 +1,7 @@
 import React from 'react';
 import { DashboardProvider } from './context/DashboardContext';
 import KPICards from './components/KPICards';
-import InteractiveMap from './components/InteractiveMap';
+import InteractiveMaps from './components/InteractiveMaps';
 import TimeControls from './components/TimeControls';
 import LandDetailPanel from './components/LandDetailPanel';
 import PortfolioView from './components/PortfolioView';
@@ -46,7 +46,7 @@ function App() {
           {/* Map & Detail Panel Row */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
             <div className="lg:col-span-2">
-              <InteractiveMap />
+              <InteractiveMaps />
             </div>
             <div>
               <LandDetailPanel />
