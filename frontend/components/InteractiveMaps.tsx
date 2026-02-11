@@ -1,8 +1,20 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
-import { Map, Source, Layer, NavigationControl, ScaleControl } from 'react-map-gl';
-import 'mapbox-gl/dist/mapbox-gl.css';
+import React, { useEffect, useState } from 'react';
+import { MapContainer, TileLayer, GeoJSON, ZoomControl, ScaleControl } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+
+// Fix for default marker icons in Leaflet with Next.js
+const fixLeafletIcons = () => {
+  // @ts-ignore
+  delete L.Icon.Default.prototype._getIconUrl;
+  L.Icon.Default.mergeOptions({
+    iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+    iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+  });
+};
 
 interface InteractiveMapsProps {
   selectedLocation?: string | null;
@@ -21,116 +33,85 @@ interface LandProperty {
   verificationStatus: 'Verified' | 'Pending' | 'At Risk';
 }
 
-const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || 'your_mapbox_token_here';
-
 const InteractiveMaps: React.FC<InteractiveMapsProps> = ({
   selectedLocation,
   dateRange,
 }) => {
-  const mapRef = useRef<any>(null);
-  const [viewState, setViewState] = useState({
-    latitude: 0,
-    longitude: 0,
-    zoom: 1.5,
-  });
-  const [activeLayer, setActiveLayer] = useState<'ndvi' | 'parcels' | 'carbon'>(
-    'ndvi'
-  );
+  const [activeLayer, setActiveLayer] = useState<'ndvi' | 'parcels' | 'carbon'>('ndvi');
   const [hoveredLand, setHoveredLand] = useState<LandProperty | null>(null);
   const [landsData, setLandsData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const layers = {
-    parcels: {
-      id: 'land-parcels',
-      type: 'fill' as const,
-      paint: {
-        'fill-color': [
-          'case',
-          ['==', ['get', 'verificationStatus'], 'Verified'],
-          '#10b981',
-          ['==', ['get', 'verificationStatus'], 'Pending'],
-          '#f59e0b',
-          ['==', ['get', 'verificationStatus'], 'At Risk'],
-          '#ef4444',
-          '#6b7280',
-        ],
-        'fill-opacity': 0.7,
-        'fill-outline-color': '#1f2937',
-      },
-    },
-    ndvi: {
-      id: 'ndvi-heatmap',
-      type: 'fill' as const,
-      paint: {
-        'fill-color': [
-          'interpolate',
-          ['linear'],
-          ['get', 'ndviCurrent'],
-          0,
-          '#ef4444',
-          0.3,
-          '#f59e0b',
-          0.6,
-          '#84cc16',
-          0.8,
-          '#10b981',
-          1,
-          '#065f46',
-        ],
-        'fill-opacity': 0.8,
-      },
-    },
-    carbon: {
-      id: 'carbon-points',
-      type: 'circle' as const,
-      paint: {
-        'circle-radius': [
-          'interpolate',
-          ['linear'],
-          ['get', 'carbonCreditsGenerated'],
-          0,
-          5,
-          5000,
-          10,
-          20000,
-          20,
-        ],
-        'circle-color': [
-          'case',
-          ['==', ['get', 'verificationStatus'], 'Verified'],
-          '#10b981',
-          ['==', ['get', 'verificationStatus'], 'Pending'],
-          '#f59e0b',
-          '#ef4444',
-        ],
-        'circle-opacity': 0.8,
-        'circle-stroke-width': 2,
-        'circle-stroke-color': '#ffffff',
-      },
-    },
+  useEffect(() => {
+    fixLeafletIcons();
+  }, []);
+
+  // Helper for NDVI coloring
+  const getNDVIColor = (ndvi: number) => {
+    if (ndvi >= 1.0) return '#065f46';
+    if (ndvi >= 0.8) return '#10b981';
+    if (ndvi >= 0.6) return '#84cc16';
+    if (ndvi >= 0.3) return '#f59e0b';
+    return '#ef4444';
   };
 
-  const handleClick = (event: any) => {
-    if (!mapRef.current) return;
-    const features = mapRef.current.queryRenderedFeatures(event.point);
-    if (features && features.length > 0) {
-      const landFeature = features.find((f: any) => f.source === 'lands');
-      if (landFeature) {
-        console.log('Land selected:', landFeature.properties);
+  // Helper for Status coloring
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'Verified': return '#10b981';
+      case 'Pending': return '#f59e0b';
+      case 'At Risk': return '#ef4444';
+      default: return '#6b7280';
+    }
+  };
+
+  // Style function for GeoJSON
+  const getFeatureStyle = (feature: any) => {
+    const props = feature.properties;
+
+    if (activeLayer === 'ndvi') {
+      return {
+        fillColor: getNDVIColor(props.ndviCurrent || 0),
+        fillOpacity: 0.8,
+        color: '#1f2937',
+        weight: 1,
+      };
+    } else if (activeLayer === 'parcels') {
+      return {
+        fillColor: getStatusColor(props.verificationStatus || ''),
+        fillOpacity: 0.7,
+        color: '#1f2937',
+        weight: 2,
+      };
+    } else { // carbon
+      return {
+        fillColor: getStatusColor(props.verificationStatus || ''),
+        fillOpacity: 0.8,
+        color: '#ffffff',
+        weight: 2,
+      };
+    }
+  };
+
+  const onEachFeature = (feature: any, layer: L.Layer) => {
+    layer.on({
+      mouseover: (e) => {
+        const l = e.target;
+        l.setStyle({
+          weight: 3,
+          fillOpacity: 0.9,
+        });
+        setHoveredLand(feature.properties);
+      },
+      mouseout: (e) => {
+        const l = e.target;
+        l.setStyle(getFeatureStyle(feature));
+        setHoveredLand(null);
+      },
+      click: (e) => {
+        console.log('Land selected:', feature.properties);
       }
-    }
-  };
-
-  const handleHover = (event: any) => {
-    if (!mapRef.current) return;
-    const features = mapRef.current.queryRenderedFeatures(event.point);
-    if (features && features.length > 0) {
-      const landFeature = features.find((f: any) => f.source === 'lands');
-      setHoveredLand(landFeature?.properties || null);
-    } else {
-      setHoveredLand(null);
-    }
+    });
   };
 
   useEffect(() => {
@@ -146,9 +127,10 @@ const InteractiveMaps: React.FC<InteractiveMapsProps> = ({
           params.append('end_date', dateRange.end.toISOString());
         }
 
-        const response = await fetch(`/api/farms?${params.toString()}`);
+        const response = await fetch(`/api/v1/farms?${params.toString()}`);
         if (response.ok) {
           const data = await response.json();
+          // Note: Backend returns data differently sometimes, adjust if needed
           setLandsData(data.geojson || {
             type: 'FeatureCollection',
             features: [],
@@ -197,158 +179,153 @@ const InteractiveMaps: React.FC<InteractiveMapsProps> = ({
         <div className="flex space-x-2">
           <button
             onClick={() => setActiveLayer('ndvi')}
-            className={`rounded-lg px-4 py-2 font-medium ${
-              activeLayer === 'ndvi'
+            className={`rounded-lg px-4 py-2 font-medium ${activeLayer === 'ndvi'
                 ? 'border border-emerald-300 bg-emerald-100 text-emerald-700'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
+              }`}
           >
             NDVI Heatmap
           </button>
           <button
             onClick={() => setActiveLayer('parcels')}
-            className={`rounded-lg px-4 py-2 font-medium ${
-              activeLayer === 'parcels'
+            className={`rounded-lg px-4 py-2 font-medium ${activeLayer === 'parcels'
                 ? 'border border-blue-300 bg-blue-100 text-blue-700'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
+              }`}
           >
             Land Parcels
           </button>
           <button
             onClick={() => setActiveLayer('carbon')}
-            className={`rounded-lg px-4 py-2 font-medium ${
-              activeLayer === 'carbon'
+            className={`rounded-lg px-4 py-2 font-medium ${activeLayer === 'carbon'
                 ? 'border border-purple-300 bg-purple-100 text-purple-700'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
+              }`}
           >
             Carbon Credits
           </button>
         </div>
       </div>
 
-      {hoveredLand && (
-        <div className="absolute left-20 top-120 z-50 rounded-lg border border-gray-200 bg-white p-4 shadow-lg">
-          <h4 className="font-bold text-gray-900">{hoveredLand.name}</h4>
-          <div className="mt-2 grid grid-cols-2 gap-2 text-sm">
-            <div>
-              <span className="text-gray-500">Area:</span>
-              <span className="ml-2 font-medium">{hoveredLand.areaHa} ha</span>
-            </div>
-            <div>
-              <span className="text-gray-500">NDVI:</span>
-              <span className="ml-2 font-medium">
-                {hoveredLand.ndviCurrent}
-              </span>
-            </div>
-            <div>
-              <span className="text-gray-500">Credits:</span>
-              <span className="ml-2 font-medium">
-                {hoveredLand.carbonCreditsGenerated.toLocaleString()} tCO₂e
-              </span>
-            </div>
-            <div>
-              <span className="text-gray-500">Status:</span>
-              <span
-                className={`ml-2 inline-block rounded-full px-2 py-1 text-xs font-medium ${
-                  hoveredLand.verificationStatus === 'Verified'
-                    ? 'bg-emerald-100 text-emerald-800'
-                    : hoveredLand.verificationStatus === 'Pending'
-                      ? 'bg-yellow-100 text-yellow-800'
-                      : 'bg-red-100 text-red-800'
-                }`}
-              >
-                {hoveredLand.verificationStatus}
-              </span>
+      <div className="relative overflow-hidden rounded-lg border border-gray-200">
+        {hoveredLand && (
+          <div className="absolute left-6 top-6 z-[1000] rounded-lg border border-gray-200 bg-white p-4 shadow-lg pointer-events-none">
+            <h4 className="font-bold text-gray-900">{hoveredLand.name}</h4>
+            <div className="mt-2 grid grid-cols-2 gap-2 text-sm">
+              <div>
+                <span className="text-gray-500">Area:</span>
+                <span className="ml-2 font-medium">{hoveredLand.areaHa} ha</span>
+              </div>
+              <div>
+                <span className="text-gray-500">NDVI:</span>
+                <span className="ml-2 font-medium">{hoveredLand.ndviCurrent}</span>
+              </div>
+              <div>
+                <span className="text-gray-500">Credits:</span>
+                <span className="ml-2 font-medium">
+                  {hoveredLand.carbonCreditsGenerated.toLocaleString()} tCO₂e
+                </span>
+              </div>
+              <div>
+                <span className="text-gray-500">Status:</span>
+                <span
+                  className={`ml-2 inline-block rounded-full px-2 py-1 text-xs font-medium ${hoveredLand.verificationStatus === 'Verified'
+                      ? 'bg-emerald-100 text-emerald-800'
+                      : hoveredLand.verificationStatus === 'Pending'
+                        ? 'bg-yellow-100 text-yellow-800'
+                        : 'bg-red-100 text-red-800'
+                    }`}
+                >
+                  {hoveredLand.verificationStatus}
+                </span>
+              </div>
             </div>
           </div>
-          <p className="mt-2 text-xs text-gray-500">
-            Click for detailed time-series analysis
-          </p>
-        </div>
-      )}
+        )}
 
-      <div className="relative overflow-hidden rounded-lg border border-gray-200">
         <div style={{ height: '500px' }}>
-          <Map
-            ref={mapRef}
-            {...viewState}
-            onMove={(evt) => setViewState(evt.viewState)}
-            onClick={handleClick}
-            onMouseMove={handleHover}
-            mapStyle="mapbox://styles/mapbox/light-v11"
-            mapboxAccessToken={MAPBOX_TOKEN}
-            interactiveLayerIds={[layers[activeLayer].id]}
+          <MapContainer
+            center={[0, 0]}
+            zoom={2}
+            scrollWheelZoom={true}
+            style={{ height: '100%', width: '100%' }}
+            zoomControl={false}
           >
-            <NavigationControl position="top-right" />
-            <ScaleControl />
+            <TileLayer
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
+            <ZoomControl position="top-right" />
+            <ScaleControl position="bottomleft" />
 
-            {landsData && landsData.features && landsData.features.length > 0 && (
-              <Source id="lands" type="geojson" data={landsData} promoteId="id">
-                <Layer {...(layers[activeLayer] as any)} />
-              </Source>
+            {landsData && landsData.features && (
+              <GeoJSON
+                key={`${activeLayer}-${landsData.features.length}`}
+                data={landsData}
+                style={getFeatureStyle}
+                onEachFeature={onEachFeature}
+              />
             )}
 
-            <div className="absolute bottom-4 left-4 rounded-lg border border-gray-200 bg-white p-4 shadow">
+            <div className="absolute bottom-4 left-4 z-[1000] rounded-lg border border-gray-200 bg-white p-4 shadow">
               <h4 className="mb-2 text-sm font-bold">
                 {activeLayer === 'ndvi'
                   ? 'NDVI Scale'
                   : activeLayer === 'parcels'
                     ? 'Verification Status'
-                    : 'Carbon Credits Size'}
+                    : 'Carbon Status'}
               </h4>
               {activeLayer === 'ndvi' && (
                 <div className="flex space-x-2">
-                  <div className="flex flex-col">
-                    <div className="h-4 w-6 bg-red-500"></div>
-                    <span className="text-xs">0</span>
+                  <div className="flex flex-col items-center">
+                    <div className="h-4 w-6 bg-[#ef4444]"></div>
+                    <span className="text-[10px]">0</span>
                   </div>
-                  <div className="flex flex-col">
-                    <div className="h-4 w-6 bg-yellow-500"></div>
-                    <span className="text-xs">0.3</span>
+                  <div className="flex flex-col items-center">
+                    <div className="h-4 w-6 bg-[#f59e0b]"></div>
+                    <span className="text-[10px]">0.3</span>
                   </div>
-                  <div className="flex flex-col">
-                    <div className="h-4 w-6 bg-lime-500"></div>
-                    <span className="text-xs">0.6</span>
+                  <div className="flex flex-col items-center">
+                    <div className="h-4 w-6 bg-[#84cc16]"></div>
+                    <span className="text-[10px]">0.6</span>
                   </div>
-                  <div className="flex flex-col">
-                    <div className="h-4 w-6 bg-emerald-500"></div>
-                    <span className="text-xs">0.8</span>
+                  <div className="flex flex-col items-center">
+                    <div className="h-4 w-6 bg-[#10b981]"></div>
+                    <span className="text-[10px]">0.8</span>
                   </div>
-                  <div className="flex flex-col">
-                    <div className="h-4 w-6 bg-green-900"></div>
-                    <span className="text-xs">1.0</span>
+                  <div className="flex flex-col items-center">
+                    <div className="h-4 w-6 bg-[#065f46]"></div>
+                    <span className="text-[10px]">1.0</span>
                   </div>
                 </div>
               )}
               {activeLayer === 'parcels' && (
                 <div className="space-y-2">
                   <div className="flex items-center">
-                    <div className="mr-2 h-3 w-3 rounded bg-emerald-500"></div>
+                    <div className="mr-2 h-3 w-3 rounded bg-[#10b981]"></div>
                     <span className="text-xs">Verified</span>
                   </div>
                   <div className="flex items-center">
-                    <div className="mr-2 h-3 w-3 rounded bg-yellow-500"></div>
+                    <div className="mr-2 h-3 w-3 rounded bg-[#f59e0b]"></div>
                     <span className="text-xs">Pending</span>
                   </div>
                   <div className="flex items-center">
-                    <div className="mr-2 h-3 w-3 rounded bg-red-500"></div>
+                    <div className="mr-2 h-3 w-3 rounded bg-[#ef4444]"></div>
                     <span className="text-xs">At Risk</span>
                   </div>
                 </div>
               )}
             </div>
 
-            <div className="absolute right-4 top-4 rounded-lg bg-white bg-opacity-90 p-3 text-sm">
+            <div className="absolute right-4 top-16 z-[1000] rounded-lg bg-white bg-opacity-90 p-3 text-sm border border-gray-200 shadow-sm">
               <p className="font-medium text-gray-600">Data Sources:</p>
               <ul className="mt-1 text-xs text-gray-500">
-                <li>• Land Boundaries: PostGIS</li>
-                <li>• NDVI: Sentinel-2 (10m resolution)</li>
-                <li>• Last Updated: Today</li>
+                <li>• Boundaries: OpenStreetMap</li>
+                <li>• NDVI: Sentinel-2</li>
+                <li>• Status: Verified Daily</li>
               </ul>
             </div>
-          </Map>
+          </MapContainer>
         </div>
       </div>
 
@@ -358,8 +335,8 @@ const InteractiveMaps: React.FC<InteractiveMapsProps> = ({
           {dateRange ? `${formatDate(dateRange.start)} - ${formatDate(dateRange.end)}` : 'All time'}{' '}
           •{' '}
           <span className="ml-4 font-medium">Lands Displayed:</span>{' '}
-          {landsData?.features?.length || 0} • 
-          <span className="ml-4 font-medium">Satellite:</span> Sentinel-2
+          {landsData?.features?.length || 0} •
+          <span className="ml-4 font-medium">Map Engine:</span> Leaflet + OSM
         </p>
       </div>
     </div>
