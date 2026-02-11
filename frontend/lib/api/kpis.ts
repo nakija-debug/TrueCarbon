@@ -34,7 +34,7 @@ export interface KPIFilters {
  * Get KPI data with optional filters
  */
 export async function getKPIs(filters?: KPIFilters): Promise<KPIData> {
-  const response = await axiosInstance.get<KPIData>('/kpis', { params: filters });
+  const response = await axiosInstance.get<KPIData>('/api/v1/kpis', { params: filters });
   return response.data;
 }
 
@@ -49,7 +49,7 @@ export async function getAlerts(params?: {
   const response = await axiosInstance.get<{
     highPriority: Alert[];
     all: Alert[];
-  }>('/alerts', { params });
+  }>('/api/v1/alerts', { params });
   return response.data;
 }
 
@@ -57,7 +57,7 @@ export async function getAlerts(params?: {
  * Get specific alert details
  */
 export async function getAlert(alertId: string): Promise<Alert> {
-  const response = await axiosInstance.get<Alert>(`/alerts/${alertId}`);
+  const response = await axiosInstance.get<Alert>(`/api/v1/alerts/${alertId}`);
   return response.data;
 }
 
@@ -65,12 +65,12 @@ export async function getAlert(alertId: string): Promise<Alert> {
  * Mark alert as read
  */
 export async function markAlertAsRead(alertId: string): Promise<void> {
-  await axiosInstance.put(`/alerts/${alertId}/read`, {});
+  await axiosInstance.put(`/api/v1/alerts/${alertId}/read`, {});
 }
 
 /**
  * Dismiss alert
  */
 export async function dismissAlert(alertId: string): Promise<void> {
-  await axiosInstance.delete(`/alerts/${alertId}`);
+  await axiosInstance.delete(`/api/v1/alerts/${alertId}`);
 }

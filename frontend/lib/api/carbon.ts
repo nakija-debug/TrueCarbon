@@ -67,7 +67,7 @@ export interface CarbonReport extends CarbonEstimate {
 export async function estimateCarbon(
   data: CarbonEstimateRequest
 ): Promise<CarbonEstimate> {
-  const response = await axiosInstance.post<CarbonEstimate>('/carbon/estimate', data);
+  const response = await axiosInstance.post<CarbonEstimate>('/api/v1/carbon/estimate', data);
   return response.data;
 }
 
@@ -83,7 +83,7 @@ export async function getCarbonEstimates(
     total: number;
     skip: number;
     limit: number;
-  }>(`/carbon/estimate/${farmId}`, { params });
+  }>(`/api/v1/carbon/estimate/${farmId}`, { params });
   return response.data;
 }
 
@@ -91,7 +91,7 @@ export async function getCarbonEstimates(
  * Get detailed carbon report
  */
 export async function getCarbonReport(estimateId: number): Promise<CarbonReport> {
-  const response = await axiosInstance.get<CarbonReport>(`/carbon/report/${estimateId}`);
+  const response = await axiosInstance.get<CarbonReport>(`/api/v1/carbon/report/${estimateId}`);
   return response.data;
 }
 

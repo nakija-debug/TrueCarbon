@@ -28,11 +28,11 @@ export interface RefreshRequest {
   refresh_token: string;
 }
 
-/**
- * Login user and get tokens
- */
 export async function login(credentials: LoginRequest): Promise<LoginResponse> {
-  const response = await axiosInstance.post<LoginResponse>('/auth/login', credentials);
+  const response = await axiosInstance.post<LoginResponse>('/api/v1/auth', {
+    ...credentials,
+    action: 'login',
+  });
   if (response.data.access_token) {
     localStorage.setItem('access_token', response.data.access_token);
     localStorage.setItem('refresh_token', response.data.refresh_token);
@@ -44,7 +44,10 @@ export async function login(credentials: LoginRequest): Promise<LoginResponse> {
  * Register new user
  */
 export async function register(data: RegisterRequest) {
-  const response = await axiosInstance.post('/auth/register', data);
+  const response = await axiosInstance.post('/api/v1/auth', {
+    ...data,
+    action: 'register',
+  });
   return response.data;
 }
 
@@ -52,8 +55,9 @@ export async function register(data: RegisterRequest) {
  * Refresh access token
  */
 export async function refreshToken(token: string): Promise<LoginResponse> {
-  const response = await axiosInstance.post<LoginResponse>('/auth/refresh', {
+  const response = await axiosInstance.post<LoginResponse>('/api/v1/auth', {
     refresh_token: token,
+    action: 'refresh',
   });
   if (response.data.access_token) {
     localStorage.setItem('access_token', response.data.access_token);
@@ -66,7 +70,7 @@ export async function refreshToken(token: string): Promise<LoginResponse> {
  */
 export async function logout(): Promise<void> {
   try {
-    await axiosInstance.post('/auth/logout', {});
+    await axiosInstance.post('/api/v1/auth', { action: 'logout' });
   } finally {
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');

@@ -5,10 +5,10 @@
 import axios, { AxiosInstance, AxiosError } from 'axios';
 import type { ApiErrorResponse } from '@/types/api';
 
-const API_URL = (process.env as any).NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const API_URL = (process.env as any).NEXT_PUBLIC_API_URL || '';
 
 const axiosInstance: AxiosInstance = axios.create({
-  baseURL: API_URL,
+  baseURL: '/',
   timeout: 30000,
   headers: {
     'Content-Type': 'application/json',

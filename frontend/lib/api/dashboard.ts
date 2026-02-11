@@ -13,7 +13,7 @@ export const dashboardApi = {
    * Get KPI data with optional filters
    */
   getKPIs: async (filters?: DateRangeFilter): Promise<KPIData> => {
-    const response = await axiosInstance.get<KPIData>(`${DASHBOARD_ENDPOINT}/kpis`, {
+    const response = await axiosInstance.get<KPIData>('/api/v1/kpis', {
       params: filters,
     });
     return response.data;
@@ -23,7 +23,7 @@ export const dashboardApi = {
    * Get alerts
    */
   getAlerts: async (): Promise<AlertData[]> => {
-    const response = await axiosInstance.get<AlertData[]>(`${DASHBOARD_ENDPOINT}/alerts`);
+    const response = await axiosInstance.get<AlertData[]>('/api/v1/alerts');
     return response.data;
   },
 };
