@@ -5,8 +5,6 @@
 import axios, { AxiosInstance, AxiosError } from 'axios';
 import type { ApiErrorResponse } from '@/types/api';
 
-const API_URL = (process.env as any).NEXT_PUBLIC_API_URL || '';
-
 const axiosInstance: AxiosInstance = axios.create({
   baseURL: '/',
   timeout: 30000,
