@@ -4,7 +4,7 @@
  * Interactive Map Component - Displays farms on Leaflet map with OpenStreetMap
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { MapContainer, TileLayer, GeoJSON, ZoomControl, ScaleControl } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -41,7 +41,7 @@ export function InteractiveMap() {
 
   const onEachFeature = (feature: any, layer: L.Layer) => {
     layer.on({
-      click: (e) => {
+      click: () => {
         setSelectedLand({
           id: feature.id as number,
           name: feature.properties?.name || 'Unknown',
@@ -50,11 +50,11 @@ export function InteractiveMap() {
           status: 'active',
         });
       },
-      mouseover: (e) => {
+      mouseover: (e: any) => {
         const l = e.target;
         l.setStyle({ weight: 4 });
       },
-      mouseout: (e) => {
+      mouseout: (e: any) => {
         const l = e.target;
         l.setStyle(getFeatureStyle());
       }

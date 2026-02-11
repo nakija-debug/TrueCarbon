@@ -108,7 +108,7 @@ const InteractiveMaps: React.FC<InteractiveMapsProps> = ({
         l.setStyle(getFeatureStyle(feature));
         setHoveredLand(null);
       },
-      click: (e) => {
+      click: () => {
         console.log('Land selected:', feature.properties);
       }
     });
@@ -180,8 +180,8 @@ const InteractiveMaps: React.FC<InteractiveMapsProps> = ({
           <button
             onClick={() => setActiveLayer('ndvi')}
             className={`rounded-lg px-4 py-2 font-medium ${activeLayer === 'ndvi'
-                ? 'border border-emerald-300 bg-emerald-100 text-emerald-700'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              ? 'border border-emerald-300 bg-emerald-100 text-emerald-700'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
           >
             NDVI Heatmap
@@ -189,8 +189,8 @@ const InteractiveMaps: React.FC<InteractiveMapsProps> = ({
           <button
             onClick={() => setActiveLayer('parcels')}
             className={`rounded-lg px-4 py-2 font-medium ${activeLayer === 'parcels'
-                ? 'border border-blue-300 bg-blue-100 text-blue-700'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              ? 'border border-blue-300 bg-blue-100 text-blue-700'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
           >
             Land Parcels
@@ -198,8 +198,8 @@ const InteractiveMaps: React.FC<InteractiveMapsProps> = ({
           <button
             onClick={() => setActiveLayer('carbon')}
             className={`rounded-lg px-4 py-2 font-medium ${activeLayer === 'carbon'
-                ? 'border border-purple-300 bg-purple-100 text-purple-700'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              ? 'border border-purple-300 bg-purple-100 text-purple-700'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
           >
             Carbon Credits
@@ -230,10 +230,10 @@ const InteractiveMaps: React.FC<InteractiveMapsProps> = ({
                 <span className="text-gray-500">Status:</span>
                 <span
                   className={`ml-2 inline-block rounded-full px-2 py-1 text-xs font-medium ${hoveredLand.verificationStatus === 'Verified'
-                      ? 'bg-emerald-100 text-emerald-800'
-                      : hoveredLand.verificationStatus === 'Pending'
-                        ? 'bg-yellow-100 text-yellow-800'
-                        : 'bg-red-100 text-red-800'
+                    ? 'bg-emerald-100 text-emerald-800'
+                    : hoveredLand.verificationStatus === 'Pending'
+                      ? 'bg-yellow-100 text-yellow-800'
+                      : 'bg-red-100 text-red-800'
                     }`}
                 >
                   {hoveredLand.verificationStatus}

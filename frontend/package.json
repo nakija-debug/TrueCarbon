@@ -1,6 +1,7 @@
 {
   "name": "truecarbon-dashboard",
   "version": "2.0.0",
+  "type": "module",
   "description": "Carbon Credit MRV Dashboard - Next.js 14 with TypeScript",
   "private": true,
   "scripts": {
