@@ -1,13 +1,18 @@
 from datetime import datetime, timedelta
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, TYPE_CHECKING
 
 from jose import jwt, JWTError
 from passlib.context import CryptContext
 from fastapi.security import OAuth2PasswordBearer
 from fastapi import HTTPException, status, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 
 from app.core.config import settings
+from app.core.database import get_db
+
+if TYPE_CHECKING:
+    from app.models.user import User
 
 # Password hashing context
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -128,14 +133,14 @@ def decode_token(token: str) -> Dict[str, Any]:
 
 async def get_current_user_db(
     token: str = Depends(oauth2_scheme),
-    db: AsyncSession = Depends(None),
+    db: AsyncSession = Depends(get_db),
 ) -> "User":
     """
     Dependency to get the current authenticated user from JWT token with database lookup.
 
     Args:
         token: JWT token from Authorization header
-        db: Database session (will be injected by FastAPI)
+        db: Database session (injected by FastAPI via get_db dependency)
 
     Returns:
         User model instance
@@ -143,11 +148,7 @@ async def get_current_user_db(
     Raises:
         HTTPException: 401 if token is invalid, expired, user not found/inactive, or is a refresh token
     """
-    from sqlalchemy import select
     from app.models.user import User
-
-    # Import here to avoid circular imports
-    from app.core.database import get_db
 
     payload = decode_token(token)
     user_id = payload.get("sub")
@@ -167,12 +168,6 @@ async def get_current_user_db(
             detail="Could not validate credentials",
             headers={"WWW-Authenticate": "Bearer"},
         )
-
-    # Get database session if not provided
-    if db is None:
-        async for session in get_db():
-            db = session
-            break
 
     # Query database for user
     result = await db.execute(select(User).where(User.id == int(user_id)))
