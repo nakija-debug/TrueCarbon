@@ -19,16 +19,12 @@ passlib[bcrypt]==1.7.4
 python-multipart==0.0.6
 email-validator==2.1.0
 
-# Google Earth Engine & Geospatial (optional for Phase 5)
-# Commented out due to binary compilation issues on Render
-# earthengine-api==0.1.384
-# geemap==0.30.0
+# Google Earth Engine & Geospatial
+earthengine-api==0.1.384
 
 # Data Processing
-# numpy==1.26.3  # Commented out due to Python 3.13 compatibility issues
-# pandas==2.1.4  # Commented out due to Python 3.13 compatibility issues
-# matplotlib==3.8.2  # Optional visualization
-# Pillow==10.2.0     # Optional image processing
+numpy<2.0.0  # Required for shapely compatibility
+pandas==2.1.4
 
 # Reporting (for subsequent phases)
 fpdf==1.7.2
