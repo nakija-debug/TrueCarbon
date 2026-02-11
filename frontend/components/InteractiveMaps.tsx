@@ -95,7 +95,7 @@ const InteractiveMaps: React.FC<InteractiveMapsProps> = ({
 
   const onEachFeature = (feature: any, layer: L.Layer) => {
     layer.on({
-      mouseover: (e) => {
+      mouseover: (e: any) => {
         const l = e.target;
         l.setStyle({
           weight: 3,
@@ -103,7 +103,7 @@ const InteractiveMaps: React.FC<InteractiveMapsProps> = ({
         });
         setHoveredLand(feature.properties);
       },
-      mouseout: (e) => {
+      mouseout: (e: any) => {
         const l = e.target;
         l.setStyle(getFeatureStyle(feature));
         setHoveredLand(null);
