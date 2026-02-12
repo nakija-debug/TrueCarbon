@@ -12,8 +12,6 @@
     "allowImportingTsExtensions": true,
     "noEmit": true,
     "resolveJsonModule": true,
-    "outDir": "./dist",
-    "rootDir": ".",
     "baseUrl": ".",
     "paths": {
       "@/*": [

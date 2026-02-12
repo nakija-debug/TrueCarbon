@@ -2,12 +2,15 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { Chart as ChartJS } from 'chart.js/auto';
+import { FarmForm } from '@/components/farm-form';
 import '@/true_carbon/style.css';
 import '@/true_carbon/login/auth.css';
 
 export default function Home() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userEmail, setUserEmail] = useState('');
+  const [showFarmForm, setShowFarmForm] = useState(false);
+
   const chartsRef = useRef<{ co2?: ChartJS; project?: ChartJS; forest?: ChartJS; satellite?: ChartJS; credits?: ChartJS }>({});
 
   useEffect(() => {
@@ -391,11 +394,21 @@ export default function Home() {
 
             if (res.ok) {
               const data = await res.json();
-              alert('Registration successful! Please log in with your credentials.');
+              // Store auth token if provided
+              if (data.access_token || data.token) {
+                localStorage.setItem('authToken', data.access_token || data.token);
+              }
+
+              // Set up for farm form
+              setUserEmail(email);
+
+              setShowFarmForm(true);
+
+              // Close modal
+              if (authModal) authModal.style.display = 'none';
+
               // Clear form
               signupFormElement.reset();
-              // Switch to login tab
-              switchToTab('login');
               return;
             } else {
               const error = await res.json();
@@ -505,6 +518,11 @@ export default function Home() {
               <p style={{ margin: '0', color: kpi.trend === 'up' ? '#52c41a' : '#666', fontSize: '12px' }}>{kpi.change}</p>
             </div>
           ))}
+        </div>
+
+        {/* Farm Location Map */}
+        <div style={{ marginBottom: '30px' }}>
+          <FarmMap userEmail={userEmail} />
         </div>
 
         {/* Charts Row 1 */}
@@ -645,311 +663,333 @@ export default function Home() {
   );
 
   // Conditional Rendering
+  if (showFarmForm) {
+    return <FarmForm
+      onSuccess={() => {
+        setShowFarmForm(false);
+        setIsLoggedIn(true);
+      }}
+    />;
+  }
+
   if (isLoggedIn) {
     return <Dashboard />;
   }
 
   return (
     <>
-    <nav className="navbar">
+      <nav className="navbar">
         <div className="container">
-            <div className="logo">
-                <i className="fas fa-satellite"></i>
-                <h1>TRUE CARBON</h1>
+          <div className="logo">
+            <i className="fas fa-satellite"></i>
+            <h1>TRUE CARBON</h1>
+          </div>
+          <ul className="nav-links">
+            <li><a href="#features">Features</a></li>
+            <li><a href="#how-it-works">How It Works</a></li>
+            <li><a href="#visualizations">Data Insights</a></li>
+            <li><a href="#solutions">Solutions</a></li>
+            <li><a href="#contact">Contact</a></li>
+          </ul>
+          <div className="auth-buttons">
+            <button id="login-btn" className="btn-secondary">Login</button>
+            <button id="signup-btn" className="btn-primary">Sign Up</button>
+          </div>
+        </div>
+      </nav>
+
+      {/* Hero Section */}
+      <section className="hero">
+        <div className="container">
+          <div className="hero-content">
+            <h1>Unleash <span className="highlight">Trust & Transparency</span> in Carbon Credits</h1>
+            <p className="hero-subtitle">A digital MRV platform that uses satellite data to continuously monitor, report, and verify post-registry carbon credit projects. It prevents greenwashing by ensuring real, measurable impact, builds buyer trust through transparent verification, and helps companies confidently invest in credible, high-integrity carbon credits.</p>
+            <div className="cta-buttons">
+              <button id="hero-signup" className="btn-primary btn-large">Start 15-Day Free Trial</button>
+              <button id="demo-btn" className="btn-secondary btn-large">Request a Demo</button>
             </div>
-            <ul className="nav-links">
+          </div>
+          <div className="hero-image">
+            <div className="satellite-visual">
+              <i className="fas fa-satellite-dish"></i>
+              <div className="orbit"></div>
+              <img
+                src="/image/earth.png"
+                alt="Earth"
+                style={{
+                  position: 'absolute',
+                  top: '50%',
+                  left: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  width: '150px',
+                  height: '150px',
+                  borderRadius: '50%',
+                  objectFit: 'cover'
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Pollution Data Visualization Section */}
+      <section className="data-section" id="visualizations">
+        <div className="container">
+          <h2 className="section-title">Global Carbon & Pollution Insights</h2>
+          <p className="section-subtitle">Real-time monitoring of carbon emissions and environmental impact data</p>
+
+          <div className="charts-container">
+            <div className="chart-box">
+              <h3>Global CO2 Emissions (2020-2024)</h3>
+              <canvas id="co2Chart"></canvas>
+              <p className="chart-note">Source: Satellite data aggregation</p>
+            </div>
+            <div className="chart-box">
+              <h3>Carbon Credit Project Types</h3>
+              <canvas id="projectChart"></canvas>
+              <p className="chart-note">Verified by TRUE CARBON</p>
+            </div>
+            <div className="chart-box">
+              <h3>Deforestation vs Reforestation (Hectares)</h3>
+              <canvas id="forestChart"></canvas>
+              <p className="chart-note">Monthly satellite monitoring</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Features Section */}
+      <section className="features" id="features">
+        <div className="container">
+          <h2 className="section-title">Advanced Digital MRV Platform</h2>
+          <p className="section-subtitle">Comprehensive Monitoring, Reporting, and Verification</p>
+
+          <div className="features-grid">
+            <div className="feature-card">
+              <div className="feature-icon">
+                <i className="fas fa-satellite"></i>
+              </div>
+              <h3>Satellite Monitoring</h3>
+              <p>Continuous, real-time tracking of carbon projects using satellite imagery and remote sensing technology.</p>
+            </div>
+            <div className="feature-card">
+              <div className="feature-icon">
+                <i className="fas fa-shield-alt"></i>
+              </div>
+              <h3>Greenwashing Prevention</h3>
+              <p>Ensure real, measurable impact with verified data to prevent misleading environmental claims.</p>
+            </div>
+            <div className="feature-card">
+              <div className="feature-icon">
+                <i className="fas fa-chart-line"></i>
+              </div>
+              <h3>Real-Time Analytics</h3>
+              <p>Monitor carbon sequestration metrics as they happen and respond quickly to changes.</p>
+            </div>
+            <div className="feature-card">
+              <div className="feature-icon">
+                <i className="fas fa-file-contract"></i>
+              </div>
+              <h3>Transparent Reporting</h3>
+              <p>Build buyer trust through transparent verification and detailed impact reporting.</p>
+            </div>
+            <div className="feature-card">
+              <div className="feature-icon">
+                <i className="fas fa-certificate"></i>
+              </div>
+              <h3>High-Integrity Credits</h3>
+              <p>Verify and validate carbon credits to ensure they represent genuine, additional emissions reductions.</p>
+            </div>
+            <div className="feature-card">
+              <div className="feature-icon">
+                <i className="fas fa-cogs"></i>
+              </div>
+              <h3>Custom Dashboards</h3>
+              <p>Tailored reporting and visualization tools to meet your specific monitoring needs.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* How It Works Section */}
+      <section className="how-it-works" id="how-it-works">
+        <div className="container">
+          <h2 className="section-title">How TRUE CARBON Works</h2>
+          <div className="steps">
+            <div className="step">
+              <div className="step-number">1</div>
+              <h3>Satellite Data Collection</h3>
+              <p>Our system aggregates data from multiple satellite sources to monitor carbon projects globally.</p>
+            </div>
+            <div className="step">
+              <div className="step-number">2</div>
+              <h3>Continuous Monitoring</h3>
+              <p>AI-powered algorithms analyze changes in vegetation, land use, and carbon sequestration.</p>
+            </div>
+            <div className="step">
+              <div className="step-number">3</div>
+              <h3>Verification & Reporting</h3>
+              <p>Automated verification against established protocols with transparent reporting.</p>
+            </div>
+            <div className="step">
+              <div className="step-number">4</div>
+              <h3>Trusted Carbon Credits</h3>
+              <p>Investors purchase verified credits with complete confidence in their environmental impact.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Solutions Section */}
+      <section className="solutions" id="solutions">
+        <div className="container">
+          <h2 className="section-title">Tailored MRV Solutions</h2>
+          <p className="section-subtitle">Flexible plans for every investment horizon</p>
+
+          <div className="solutions-grid">
+            <div className="solution-card">
+              <h3>Short-Term</h3>
+              <p className="price">Starting at <span>$499</span>/month</p>
+              <ul>
+                <li><i className="fas fa-check"></i> Project Verification</li>
+                <li><i className="fas fa-check"></i> Basic Monitoring</li>
+                <li><i className="fas fa-check"></i> Standard Reports</li>
+                <li><i className="fas fa-check"></i> Quarterly Audits</li>
+              </ul>
+              <button className="btn-secondary">Learn More</button>
+            </div>
+            <div className="solution-card featured">
+              <div className="popular-tag">MOST POPULAR</div>
+              <h3>Medium-Term</h3>
+              <p className="price">Starting at <span>$1,299</span>/month</p>
+              <ul>
+                <li><i className="fas fa-check"></i> Everything in Short-Term</li>
+                <li><i className="fas fa-check"></i> Real-Time Analytics</li>
+                <li><i className="fas fa-check"></i> Custom Dashboards</li>
+                <li><i className="fas fa-check"></i> Monthly Audits</li>
+                <li><i className="fas fa-check"></i> API Access</li>
+              </ul>
+              <button className="btn-primary">Start Free Trial</button>
+            </div>
+            <div className="solution-card">
+              <h3>Long-Term</h3>
+              <p className="price">Custom <span>Enterprise</span> Pricing</p>
+              <ul>
+                <li><i className="fas fa-check"></i> Everything in Medium-Term</li>
+                <li><i className="fas fa-check"></i> Advanced Predictive Analytics</li>
+                <li><i className="fas fa-check"></i> Full Customization</li>
+                <li><i className="fas fa-check"></i> Weekly Audits</li>
+                <li><i className="fas fa-check"></i> Dedicated Support</li>
+                <li><i className="fas fa-check"></i> White-label Solutions</li>
+              </ul>
+              <button className="btn-secondary">Contact Sales</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Trial Section */}
+      <section className="trial-section">
+        <div className="container">
+          <div className="trial-content">
+            <h2>Get Started with 15-Day Free Trial</h2>
+            <p>Sign up now and start leveraging the power of satellite-verified carbon credits. We'll give you access to all the tools and resources you need to verify and invest with confidence.</p>
+            <button id="final-signup" className="btn-primary btn-large">Start Your Free Trial</button>
+          </div>
+        </div>
+      </section>
+
+      {/* Login/Signup Modal */}
+      <div id="auth-modal" className="modal">
+        <div className="modal-content">
+          <span className="close-modal">&times;</span>
+          <div className="modal-tabs">
+            <button className="tab-btn active" data-tab="login">Login</button>
+            <button className="tab-btn" data-tab="signup">Sign Up</button>
+          </div>
+
+          <div id="login-tab" className="tab-content active">
+            <h3>Login to TRUE CARBON</h3>
+            <form id="login-form">
+              <div className="form-group">
+                <label htmlFor="email">Email Address</label>
+                <input type="email" id="email" placeholder="Enter your email" required />
+              </div>
+              <div className="form-group">
+                <label htmlFor="password">Password</label>
+                <input type="password" id="password" placeholder="Enter your password" required />
+              </div>
+              <button type="submit" className="btn-primary btn-full">Login</button>
+            </form>
+            <p className="modal-footer">Don't have an account? <a href="#" className="switch-tab" data-tab="signup">Sign up here</a></p>
+          </div>
+
+          <div id="signup-tab" className="tab-content">
+            <h3>Create Your TRUE CARBON Account</h3>
+            {/* BACKEND: On submit, call your backend registration endpoint (e.g. POST /auth/register). The example in login/auth.js shows commented fetch code and guidance for storing the returned token/credentials. */}
+            <form id="signup-form">
+              <div className="form-group">
+                <label htmlFor="signup-name">Full Name</label>
+                <input type="text" id="signup-name" placeholder="Enter your full name" required />
+              </div>
+              <div className="form-group">
+                <label htmlFor="signup-email">Email Address</label>
+                <input type="email" id="signup-email" placeholder="Enter your email" required />
+              </div>
+              <div className="form-group">
+                <label htmlFor="signup-password">Password</label>
+                <input type="password" id="signup-password" placeholder="Create a password" required />
+              </div>
+              <div className="form-group">
+                <label htmlFor="signup-company">Company Name</label>
+                <input type="text" id="signup-company" placeholder="Enter your company name" required />
+              </div>
+              <button type="submit" className="btn-primary btn-full">Start Free Trial</button>
+            </form>
+            <p className="modal-footer">Already have an account? <a href="#" className="switch-tab" data-tab="login">Login here</a></p>
+          </div>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <footer className="footer" id="contact">
+        <div className="container">
+          <div className="footer-content">
+            <div className="footer-section">
+              <div className="logo">
+                <i className="fas fa-satellite"></i>
+                <h2>TRUE CARBON</h2>
+              </div>
+              <p>A digital MRV platform using satellite data to monitor, report, and verify carbon credit projects with transparency and integrity.</p>
+            </div>
+            <div className="footer-section">
+              <h3>Contact Us</h3>
+              <p><i className="fas fa-envelope"></i> contact@truecarbon.com</p>
+              <p><i className="fas fa-phone"></i> +1 (555) 123-4567</p>
+              <p><i className="fas fa-map-marker-alt"></i> 123 Green Street, Eco City, EC 12345</p>
+            </div>
+            <div className="footer-section">
+              <h3>Quick Links</h3>
+              <ul>
                 <li><a href="#features">Features</a></li>
                 <li><a href="#how-it-works">How It Works</a></li>
-                <li><a href="#visualizations">Data Insights</a></li>
-                <li><a href="#solutions">Solutions</a></li>
+                <li><a href="#solutions">Pricing</a></li>
                 <li><a href="#contact">Contact</a></li>
-            </ul>
-            <div className="auth-buttons">
-                <button id="login-btn" className="btn-secondary">Login</button>
-                <button id="signup-btn" className="btn-primary">Sign Up</button>
+              </ul>
             </div>
+            <div className="footer-section">
+              <h3>Subscribe to Our Newsletter</h3>
+              <form id="newsletter-form">
+                <input type="email" placeholder="Your email address" required />
+                <button type="submit" className="btn-primary">Subscribe</button>
+              </form>
+            </div>
+          </div>
+          <div className="footer-bottom">
+            <p>&copy; 2023 TRUE CARBON. All rights reserved. | <a href="#">Privacy Policy</a> | <a href="#">Terms of Service</a></p>
+          </div>
         </div>
-    </nav>
-
-    {/* Hero Section */}
-    <section className="hero">
-        <div className="container">
-            <div className="hero-content">
-                <h1>Unleash <span className="highlight">Trust & Transparency</span> in Carbon Credits</h1>
-                <p className="hero-subtitle">A digital MRV platform that uses satellite data to continuously monitor, report, and verify post-registry carbon credit projects. It prevents greenwashing by ensuring real, measurable impact, builds buyer trust through transparent verification, and helps companies confidently invest in credible, high-integrity carbon credits.</p>
-                <div className="cta-buttons">
-                    <button id="hero-signup" className="btn-primary btn-large">Start 15-Day Free Trial</button>
-                    <button id="demo-btn" className="btn-secondary btn-large">Request a Demo</button>
-                </div>
-            </div>
-            <div className="hero-image">
-                <div className="satellite-visual">
-                    <i className="fas fa-satellite-dish"></i>
-                    <div className="orbit"></div>
-                    <div className="earth"></div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    {/* Pollution Data Visualization Section */}
-    <section className="data-section" id="visualizations">
-        <div className="container">
-            <h2 className="section-title">Global Carbon & Pollution Insights</h2>
-            <p className="section-subtitle">Real-time monitoring of carbon emissions and environmental impact data</p>
-            
-            <div className="charts-container">
-                <div className="chart-box">
-                    <h3>Global CO2 Emissions (2020-2024)</h3>
-                    <canvas id="co2Chart"></canvas>
-                    <p className="chart-note">Source: Satellite data aggregation</p>
-                </div>
-                <div className="chart-box">
-                    <h3>Carbon Credit Project Types</h3>
-                    <canvas id="projectChart"></canvas>
-                    <p className="chart-note">Verified by TRUE CARBON</p>
-                </div>
-                <div className="chart-box">
-                    <h3>Deforestation vs Reforestation (Hectares)</h3>
-                    <canvas id="forestChart"></canvas>
-                    <p className="chart-note">Monthly satellite monitoring</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    {/* Features Section */}
-    <section className="features" id="features">
-        <div className="container">
-            <h2 className="section-title">Advanced Digital MRV Platform</h2>
-            <p className="section-subtitle">Comprehensive Monitoring, Reporting, and Verification</p>
-            
-            <div className="features-grid">
-                <div className="feature-card">
-                    <div className="feature-icon">
-                        <i className="fas fa-satellite"></i>
-                    </div>
-                    <h3>Satellite Monitoring</h3>
-                    <p>Continuous, real-time tracking of carbon projects using satellite imagery and remote sensing technology.</p>
-                </div>
-                <div className="feature-card">
-                    <div className="feature-icon">
-                        <i className="fas fa-shield-alt"></i>
-                    </div>
-                    <h3>Greenwashing Prevention</h3>
-                    <p>Ensure real, measurable impact with verified data to prevent misleading environmental claims.</p>
-                </div>
-                <div className="feature-card">
-                    <div className="feature-icon">
-                        <i className="fas fa-chart-line"></i>
-                    </div>
-                    <h3>Real-Time Analytics</h3>
-                    <p>Monitor carbon sequestration metrics as they happen and respond quickly to changes.</p>
-                </div>
-                <div className="feature-card">
-                    <div className="feature-icon">
-                        <i className="fas fa-file-contract"></i>
-                    </div>
-                    <h3>Transparent Reporting</h3>
-                    <p>Build buyer trust through transparent verification and detailed impact reporting.</p>
-                </div>
-                <div className="feature-card">
-                    <div className="feature-icon">
-                        <i className="fas fa-certificate"></i>
-                    </div>
-                    <h3>High-Integrity Credits</h3>
-                    <p>Verify and validate carbon credits to ensure they represent genuine, additional emissions reductions.</p>
-                </div>
-                <div className="feature-card">
-                    <div className="feature-icon">
-                        <i className="fas fa-cogs"></i>
-                    </div>
-                    <h3>Custom Dashboards</h3>
-                    <p>Tailored reporting and visualization tools to meet your specific monitoring needs.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    {/* How It Works Section */}
-    <section className="how-it-works" id="how-it-works">
-        <div className="container">
-            <h2 className="section-title">How TRUE CARBON Works</h2>
-            <div className="steps">
-                <div className="step">
-                    <div className="step-number">1</div>
-                    <h3>Satellite Data Collection</h3>
-                    <p>Our system aggregates data from multiple satellite sources to monitor carbon projects globally.</p>
-                </div>
-                <div className="step">
-                    <div className="step-number">2</div>
-                    <h3>Continuous Monitoring</h3>
-                    <p>AI-powered algorithms analyze changes in vegetation, land use, and carbon sequestration.</p>
-                </div>
-                <div className="step">
-                    <div className="step-number">3</div>
-                    <h3>Verification & Reporting</h3>
-                    <p>Automated verification against established protocols with transparent reporting.</p>
-                </div>
-                <div className="step">
-                    <div className="step-number">4</div>
-                    <h3>Trusted Carbon Credits</h3>
-                    <p>Investors purchase verified credits with complete confidence in their environmental impact.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    {/* Solutions Section */}
-    <section className="solutions" id="solutions">
-        <div className="container">
-            <h2 className="section-title">Tailored MRV Solutions</h2>
-            <p className="section-subtitle">Flexible plans for every investment horizon</p>
-            
-            <div className="solutions-grid">
-                <div className="solution-card">
-                    <h3>Short-Term</h3>
-                    <p className="price">Starting at <span>$499</span>/month</p>
-                    <ul>
-                        <li><i className="fas fa-check"></i> Project Verification</li>
-                        <li><i className="fas fa-check"></i> Basic Monitoring</li>
-                        <li><i className="fas fa-check"></i> Standard Reports</li>
-                        <li><i className="fas fa-check"></i> Quarterly Audits</li>
-                    </ul>
-                    <button className="btn-secondary">Learn More</button>
-                </div>
-                <div className="solution-card featured">
-                    <div className="popular-tag">MOST POPULAR</div>
-                    <h3>Medium-Term</h3>
-                    <p className="price">Starting at <span>$1,299</span>/month</p>
-                    <ul>
-                        <li><i className="fas fa-check"></i> Everything in Short-Term</li>
-                        <li><i className="fas fa-check"></i> Real-Time Analytics</li>
-                        <li><i className="fas fa-check"></i> Custom Dashboards</li>
-                        <li><i className="fas fa-check"></i> Monthly Audits</li>
-                        <li><i className="fas fa-check"></i> API Access</li>
-                    </ul>
-                    <button className="btn-primary">Start Free Trial</button>
-                </div>
-                <div className="solution-card">
-                    <h3>Long-Term</h3>
-                    <p className="price">Custom <span>Enterprise</span> Pricing</p>
-                    <ul>
-                        <li><i className="fas fa-check"></i> Everything in Medium-Term</li>
-                        <li><i className="fas fa-check"></i> Advanced Predictive Analytics</li>
-                        <li><i className="fas fa-check"></i> Full Customization</li>
-                        <li><i className="fas fa-check"></i> Weekly Audits</li>
-                        <li><i className="fas fa-check"></i> Dedicated Support</li>
-                        <li><i className="fas fa-check"></i> White-label Solutions</li>
-                    </ul>
-                    <button className="btn-secondary">Contact Sales</button>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    {/* Trial Section */}
-    <section className="trial-section">
-        <div className="container">
-            <div className="trial-content">
-                <h2>Get Started with 15-Day Free Trial</h2>
-                <p>Sign up now and start leveraging the power of satellite-verified carbon credits. We'll give you access to all the tools and resources you need to verify and invest with confidence.</p>
-                <button id="final-signup" className="btn-primary btn-large">Start Your Free Trial</button>
-            </div>
-        </div>
-    </section>
-
-    {/* Login/Signup Modal */}
-    <div id="auth-modal" className="modal">
-        <div className="modal-content">
-            <span className="close-modal">&times;</span>
-            <div className="modal-tabs">
-                <button className="tab-btn active" data-tab="login">Login</button>
-                <button className="tab-btn" data-tab="signup">Sign Up</button>
-            </div>
-            
-                <div id="login-tab" className="tab-content active">
-                <h3>Login to TRUE CARBON</h3>
-                <form id="login-form">
-                    <div className="form-group">
-                        <label htmlFor="email">Email Address</label>
-                        <input type="email" id="email" placeholder="Enter your email" required />
-                    </div>
-                    <div className="form-group">
-                        <label htmlFor="password">Password</label>
-                        <input type="password" id="password" placeholder="Enter your password" required />
-                    </div>
-                    <button type="submit" className="btn-primary btn-full">Login</button>
-                </form>
-                <p className="modal-footer">Don't have an account? <a href="#" className="switch-tab" data-tab="signup">Sign up here</a></p>
-            </div>
-            
-                <div id="signup-tab" className="tab-content">
-                <h3>Create Your TRUE CARBON Account</h3>
-                {/* BACKEND: On submit, call your backend registration endpoint (e.g. POST /auth/register). The example in login/auth.js shows commented fetch code and guidance for storing the returned token/credentials. */}
-                <form id="signup-form">
-                    <div className="form-group">
-                        <label htmlFor="signup-name">Full Name</label>
-                        <input type="text" id="signup-name" placeholder="Enter your full name" required />
-                    </div>
-                    <div className="form-group">
-                        <label htmlFor="signup-email">Email Address</label>
-                        <input type="email" id="signup-email" placeholder="Enter your email" required />
-                    </div>
-                    <div className="form-group">
-                        <label htmlFor="signup-password">Password</label>
-                        <input type="password" id="signup-password" placeholder="Create a password" required />
-                    </div>
-                    <div className="form-group">
-                        <label htmlFor="signup-company">Company Name</label>
-                        <input type="text" id="signup-company" placeholder="Enter your company name" required />
-                    </div>
-                    <button type="submit" className="btn-primary btn-full">Start Free Trial</button>
-                </form>
-                <p className="modal-footer">Already have an account? <a href="#" className="switch-tab" data-tab="login">Login here</a></p>
-            </div>
-        </div>
-    </div>
-
-    {/* Footer */}
-    <footer className="footer" id="contact">
-        <div className="container">
-            <div className="footer-content">
-                <div className="footer-section">
-                    <div className="logo">
-                        <i className="fas fa-satellite"></i>
-                        <h2>TRUE CARBON</h2>
-                    </div>
-                    <p>A digital MRV platform using satellite data to monitor, report, and verify carbon credit projects with transparency and integrity.</p>
-                </div>
-                <div className="footer-section">
-                    <h3>Contact Us</h3>
-                    <p><i className="fas fa-envelope"></i> contact@truecarbon.com</p>
-                    <p><i className="fas fa-phone"></i> +1 (555) 123-4567</p>
-                    <p><i className="fas fa-map-marker-alt"></i> 123 Green Street, Eco City, EC 12345</p>
-                </div>
-                <div className="footer-section">
-                    <h3>Quick Links</h3>
-                    <ul>
-                        <li><a href="#features">Features</a></li>
-                        <li><a href="#how-it-works">How It Works</a></li>
-                        <li><a href="#solutions">Pricing</a></li>
-                        <li><a href="#contact">Contact</a></li>
-                    </ul>
-                </div>
-                <div className="footer-section">
-                    <h3>Subscribe to Our Newsletter</h3>
-                    <form id="newsletter-form">
-                        <input type="email" placeholder="Your email address" required />
-                        <button type="submit" className="btn-primary">Subscribe</button>
-                    </form>
-                </div>
-            </div>
-            <div className="footer-bottom">
-                <p>&copy; 2023 TRUE CARBON. All rights reserved. | <a href="#">Privacy Policy</a> | <a href="#">Terms of Service</a></p>
-            </div>
-        </div>
-    </footer>
+      </footer>
 
     </>
   );
