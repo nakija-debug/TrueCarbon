@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Chart as ChartJS } from 'chart.js/auto';
 import { FarmForm } from '@/components/farm-form';
+import { FarmMap } from '@/components/farm-map';
 import '@/true_carbon/style.css';
 import '@/true_carbon/login/auth.css';
 
@@ -520,9 +521,9 @@ export default function Home() {
           ))}
         </div>
 
-        {/* Farm Location Map */}
+        {/* Farm Location Map - Force Rebuild */}
         <div style={{ marginBottom: '30px' }}>
-          <FarmMap userEmail={userEmail} />
+          <FarmMap />
         </div>
 
         {/* Charts Row 1 */}
