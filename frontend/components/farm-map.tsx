@@ -14,9 +14,10 @@ interface Farm {
 }
 
 interface FarmMapProps {
+  mockFarms?: Farm[];
 }
 
-export function FarmMap({ }: FarmMapProps) {
+export function FarmMap({ mockFarms }: FarmMapProps) {
   const [farms, setFarms] = useState<Farm[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -45,6 +46,10 @@ export function FarmMap({ }: FarmMapProps) {
         }
 
         // Create map centered on Africa (default view)
+        if (!mapContainerRef.current) {
+          throw new Error('Map container not found');
+        }
+
         const map = L.current.map(mapContainerRef.current).setView([0, 20], 4);
 
         // Add OpenStreetMap tiles
@@ -59,7 +64,14 @@ export function FarmMap({ }: FarmMapProps) {
         fetchFarms(map);
       } catch (err) {
         console.error('Failed to initialize map:', err);
-        setError('Failed to load map');
+        // Use mock data as fallback
+        if (mockFarms && mockFarms.length > 0) {
+          setFarms(mockFarms);
+          setLoading(false);
+        } else {
+          setError('Failed to load map');
+          setLoading(false);
+        }
       }
     };
 
@@ -71,14 +83,23 @@ export function FarmMap({ }: FarmMapProps) {
         mapRef.current = null;
       }
     };
-  }, []);
+  }, [mockFarms]);
 
   // Fetch farms from backend
   const fetchFarms = async (map: any) => {
     try {
       const token = localStorage.getItem('authToken');
       if (!token) {
-        setError('Not authenticated');
+        // Use mock data if not authenticated
+        if (mockFarms && mockFarms.length > 0) {
+          setFarms(mockFarms);
+          if (map && L.current) {
+            plotFarmsOnMap(map, mockFarms);
+          }
+          setLoading(false);
+          return;
+        }
+        // No token and no mock data - just load empty
         setLoading(false);
         return;
       }
@@ -102,7 +123,13 @@ export function FarmMap({ }: FarmMapProps) {
       }
     } catch (err) {
       console.error('Error fetching farms:', err);
-      setError('Failed to load farms');
+      // Fallback to mock data on error
+      if (mockFarms && mockFarms.length > 0) {
+        setFarms(mockFarms);
+        if (mapRef.current && L.current) {
+          plotFarmsOnMap(mapRef.current, mockFarms);
+        }
+      }
     } finally {
       setLoading(false);
     }
