@@ -29,3 +29,9 @@ class InvalidDateRangeError(EarthEngineError):
     """Raised when date range is invalid."""
 
     pass
+
+
+class SatelliteHealthCheckError(Exception):
+    """Raised when satellite health check fails."""
+
+    pass

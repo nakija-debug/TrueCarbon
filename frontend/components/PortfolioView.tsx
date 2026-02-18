@@ -17,6 +17,12 @@ interface Land {
   carbonCredits: number;
   verificationStatus: 'Verified' | 'Pending' | 'At Risk';
   ndviTrend: number;
+  latitude: number;
+  longitude: number;
+  geometry?: {
+    type: string;
+    coordinates: number[][][];
+  };
 }
 
 const PortfolioView: React.FC<PortfolioViewProps> = ({
@@ -30,6 +36,20 @@ const PortfolioView: React.FC<PortfolioViewProps> = ({
       carbonCredits: 1200,
       verificationStatus: 'Verified',
       ndviTrend: 0.12,
+      latitude: -0.95,
+      longitude: 36.8,
+      geometry: {
+        type: 'Polygon',
+        coordinates: [
+          [
+            [36.8, -0.95],
+            [36.85, -0.95],
+            [36.85, -1.0],
+            [36.8, -1.0],
+            [36.8, -0.95],
+          ],
+        ],
+      },
     },
     {
       id: '2',
@@ -38,6 +58,20 @@ const PortfolioView: React.FC<PortfolioViewProps> = ({
       carbonCredits: 950,
       verificationStatus: 'Pending',
       ndviTrend: -0.05,
+      latitude: -0.7,
+      longitude: 37.175,
+      geometry: {
+        type: 'Polygon',
+        coordinates: [
+          [
+            [37.15, -0.7],
+            [37.2, -0.7],
+            [37.2, -0.75],
+            [37.15, -0.75],
+            [37.15, -0.7],
+          ],
+        ],
+      },
     },
     {
       id: '3',
@@ -46,6 +80,20 @@ const PortfolioView: React.FC<PortfolioViewProps> = ({
       carbonCredits: 1650,
       verificationStatus: 'Verified',
       ndviTrend: 0.18,
+      latitude: -0.3,
+      longitude: 36.125,
+      geometry: {
+        type: 'Polygon',
+        coordinates: [
+          [
+            [36.1, -0.3],
+            [36.15, -0.3],
+            [36.15, -0.35],
+            [36.1, -0.35],
+            [36.1, -0.3],
+          ],
+        ],
+      },
     },
   ]);
 

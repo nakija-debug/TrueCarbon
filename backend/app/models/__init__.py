@@ -6,6 +6,7 @@ from app.models.user import User
 from app.models.farm import Farm
 from app.models.measurement import Measurement
 from app.models.report import Report
+from app.models.satellite_status import SatelliteStatus
 
 __all__ = [
     "BaseModel",
@@ -14,4 +15,5 @@ __all__ = [
     "Farm",
     "Measurement",
     "Report",
+    "SatelliteStatus",
 ]

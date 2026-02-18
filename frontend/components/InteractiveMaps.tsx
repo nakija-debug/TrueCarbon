@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { MapContainer, TileLayer, GeoJSON, ZoomControl, ScaleControl } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import CompanyLocationMarker from './company-location-marker';
 
 // Fix for default marker icons in Leaflet with Next.js
 const fixLeafletIcons = () => {
@@ -22,6 +23,16 @@ interface InteractiveMapsProps {
     start: Date;
     end: Date;
   };
+  companyLocations?: Array<{
+    id: string;
+    name: string;
+    latitude: number;
+    longitude: number;
+    areaHa: number;
+    carbonCredits: number;
+    verificationStatus: 'Verified' | 'Pending' | 'At Risk';
+  }>;
+  onSelectLocation?: (id: string) => void;
 }
 
 interface LandProperty {
@@ -36,11 +47,14 @@ interface LandProperty {
 const InteractiveMaps: React.FC<InteractiveMapsProps> = ({
   selectedLocation,
   dateRange,
+  companyLocations = [],
+  onSelectLocation,
 }) => {
   const [activeLayer, setActiveLayer] = useState<'ndvi' | 'parcels' | 'carbon'>('ndvi');
   const [hoveredLand, setHoveredLand] = useState<LandProperty | null>(null);
   const [landsData, setLandsData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [mapLayer, setMapLayer] = useState<'osm' | 'satellite'>('osm');
 
   useEffect(() => {
     fixLeafletIcons();
@@ -204,6 +218,26 @@ const InteractiveMaps: React.FC<InteractiveMapsProps> = ({
           >
             Carbon Credits
           </button>
+          <div className="ml-auto flex space-x-2 border-l border-gray-200 pl-2">
+            <button
+              onClick={() => setMapLayer('osm')}
+              className={`rounded-lg px-4 py-2 font-medium text-sm ${mapLayer === 'osm'
+                ? 'border border-blue-300 bg-blue-100 text-blue-700'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+            >
+              🗺️ Map
+            </button>
+            <button
+              onClick={() => setMapLayer('satellite')}
+              className={`rounded-lg px-4 py-2 font-medium text-sm ${mapLayer === 'satellite'
+                ? 'border border-blue-300 bg-blue-100 text-blue-700'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+            >
+              🛰️ Satellite
+            </button>
+          </div>
         </div>
       </div>
 
@@ -247,14 +281,26 @@ const InteractiveMaps: React.FC<InteractiveMapsProps> = ({
           <MapContainer
             center={[0, 0]}
             zoom={2}
+            maxZoom={22}
             scrollWheelZoom={true}
             style={{ height: '100%', width: '100%' }}
             zoomControl={false}
           >
-            <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
+            {mapLayer === 'osm' ? (
+              <TileLayer
+                key="osm"
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                maxZoom={22}
+              />
+            ) : (
+              <TileLayer
+                key="satellite"
+                attribution='Tiles &copy; Esri'
+                url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+                maxZoom={22}
+              />
+            )}
             <ZoomControl position="topright" />
             <ScaleControl position="bottomleft" />
 
@@ -264,6 +310,13 @@ const InteractiveMaps: React.FC<InteractiveMapsProps> = ({
                 data={landsData}
                 style={getFeatureStyle}
                 onEachFeature={onEachFeature}
+              />
+            )}
+
+            {companyLocations && companyLocations.length > 0 && (
+              <CompanyLocationMarker 
+                locations={companyLocations} 
+                onSelectLocation={onSelectLocation}
               />
             )}
 

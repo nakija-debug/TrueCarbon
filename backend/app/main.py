@@ -1,5 +1,6 @@
 """FastAPI application factory and configuration."""
 
+import asyncio
 import logging
 from contextlib import asynccontextmanager
 
@@ -7,17 +8,50 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
-from app.core.database import engine, init_db
+from app.core.database import engine, init_db, AsyncSessionLocal
 from app.api.v1 import api_router
+from app.services.satellite_health_service import SatelliteHealthService
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Global variable to store the background task
+_satellite_health_task: asyncio.Task | None = None
+
+
+async def _satellite_health_check_task():
+    """Background task that periodically checks satellite health."""
+    interval_seconds = settings.SATELLITE_HEALTH_CHECK_INTERVAL_HOURS * 3600
+    service = SatelliteHealthService()
+    
+    try:
+        while True:
+            try:
+                logger.debug("Starting satellite health check task")
+                db = AsyncSessionLocal()
+                try:
+                    await service.update_all_satellite_status(db)
+                    logger.info("Satellite health check completed successfully")
+                except Exception as e:
+                    logger.error(f"Satellite health check failed: {e}")
+                finally:
+                    await db.close()
+            except Exception as e:
+                logger.error(f"Error in satellite health check task: {e}")
+            
+            # Wait for the configured interval
+            await asyncio.sleep(interval_seconds)
+    except asyncio.CancelledError:
+        logger.info("Satellite health check task cancelled")
+        raise
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Lifespan context manager for startup and shutdown events."""
+    global _satellite_health_task
+    
     # Startup
     try:
         logger.info(f"Starting {settings.PROJECT_NAME} v{settings.VERSION}")
@@ -25,6 +59,16 @@ async def lifespan(app: FastAPI):
         logger.info(f"Database: {settings.DATABASE_URL.split('@')[1] if '@' in settings.DATABASE_URL else 'SQLite'}")
         await init_db()
         logger.info("Database initialized successfully")
+        
+        # Start satellite health check background task
+        if settings.SATELLITE_HEALTH_CHECK_ENABLED:
+            logger.info(
+                f"Starting satellite health check task "
+                f"(interval: {settings.SATELLITE_HEALTH_CHECK_INTERVAL_HOURS} hours)"
+            )
+            _satellite_health_task = asyncio.create_task(_satellite_health_check_task())
+        else:
+            logger.info("Satellite health check is disabled")
     except Exception as e:
         logger.error(f"Startup error: {e}")
         raise
@@ -34,6 +78,16 @@ async def lifespan(app: FastAPI):
     # Shutdown
     try:
         logger.info("Shutting down...")
+        
+        # Cancel satellite health check task
+        if _satellite_health_task and not _satellite_health_task.done():
+            logger.info("Cancelling satellite health check task")
+            _satellite_health_task.cancel()
+            try:
+                await _satellite_health_task
+            except asyncio.CancelledError:
+                logger.info("Satellite health check task cancelled successfully")
+        
         await engine.dispose()
         logger.info("Database connections closed")
     except Exception as e:

@@ -34,7 +34,7 @@ class Measurement(BaseModel):
         index=True,
         nullable=False,
     )
-    """Type of measurement: 'ndvi', 'lulc', 'carbon'"""
+    """Type of measurement: 'ndvi', 'lulc', 'carbon', 'temperature', 'humidity', 'lst'"""
 
     measurement_date: Mapped[date] = mapped_column(
         Date,
