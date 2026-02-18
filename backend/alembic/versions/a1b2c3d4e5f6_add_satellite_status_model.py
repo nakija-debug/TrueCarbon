@@ -1,7 +1,7 @@
 """Add satellite status model
 
 Revision ID: a1b2c3d4e5f6
-Revises: 5abe8f5d168a
+Revises: 8a9c1d2e3f4a
 Create Date: 2026-02-11 10:45:00.000000
 
 """
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = 'a1b2c3d4e5f6'
-down_revision = '5abe8f5d168a'
+down_revision = '8a9c1d2e3f4a'
 branch_labels = None
 depends_on = None
 
