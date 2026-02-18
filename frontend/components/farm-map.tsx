@@ -32,6 +32,15 @@ export function FarmMap({ mockFarms }: FarmMapProps) {
 
     const initMap = async () => {
       try {
+        // Check if map already exists - prevent double initialization
+        if (mapRef.current) {
+          console.log('Map already initialized, updating farms');
+          if (mockFarms && mockFarms.length > 0) {
+            plotFarmsOnMap(mapRef.current, mockFarms);
+          }
+          return;
+        }
+
         // Dynamically import Leaflet
         const leaflet = await import('leaflet');
         L.current = leaflet.default;
@@ -60,8 +69,15 @@ export function FarmMap({ mockFarms }: FarmMapProps) {
 
         mapRef.current = map;
 
-        // Fetch farms from backend
-        fetchFarms(map);
+        // Load farms (real or mock)
+        if (mockFarms && mockFarms.length > 0) {
+          plotFarmsOnMap(map, mockFarms);
+          setFarms(mockFarms);
+          setLoading(false);
+        } else {
+          // Fetch farms from backend
+          fetchFarms(map);
+        }
       } catch (err) {
         console.error('Failed to initialize map:', err);
         // Use mock data as fallback
@@ -79,11 +95,15 @@ export function FarmMap({ mockFarms }: FarmMapProps) {
 
     return () => {
       if (mapRef.current) {
-        mapRef.current.remove();
+        try {
+          mapRef.current.remove();
+        } catch (err) {
+          console.warn('Error removing map:', err);
+        }
         mapRef.current = null;
       }
     };
-  }, [mockFarms]);
+  }, []);
 
   // Fetch farms from backend
   const fetchFarms = async (map: any) => {

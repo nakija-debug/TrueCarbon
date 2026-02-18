@@ -2,7 +2,7 @@
 
 from fastapi import APIRouter
 
-from app.api.v1 import auth, users, farms, ndvi, carbon, lulc, reports
+from app.api.v1 import auth, users, farms, ndvi, carbon, lulc, reports, satellites
 
 api_router = APIRouter()
 
@@ -14,6 +14,7 @@ api_router.include_router(ndvi.router)
 api_router.include_router(carbon.router)
 api_router.include_router(lulc.router)
 api_router.include_router(reports.router, tags=["Reports"])
+api_router.include_router(satellites.router)
 
 
 @api_router.get("/status")
@@ -21,14 +22,16 @@ async def api_status():
     """API v1 status endpoint."""
     return {
         "status": "API v1 ready",
-        "endpoints": "Authentication, user management, farms, NDVI, carbon, and LULC implemented",
+        "endpoints": "Authentication, user management, farms, NDVI, carbon, LULC, satellite monitoring, and environmental data (temperature, humidity, LST) implemented",
         "available_modules": [
             "/auth - Authentication (login, register, refresh, me)",
             "/users - User management (list, get, update, delete)",
             "/farms - Farm management and GeoJSON queries",
             "/ndvi - NDVI index calculations and time-series retrieval",
+            "/environmental - Temperature, humidity, and land surface temperature measurements",
             "/carbon - Carbon estimation and tracking",
             "/lulc - Land use land cover classification",
+            "/satellites - Satellite health monitoring and data source availability",
         ],
         "planned_modules": [
             "/reports - PDF and CSV report generation",

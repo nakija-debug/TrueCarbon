@@ -36,6 +36,12 @@ class Settings(BaseSettings):
     GEE_RETRY_DELAY: int = 1
     """Initial retry delay in seconds (exponential backoff applied)"""
 
+    # Satellite Health Monitoring
+    SATELLITE_HEALTH_CHECK_ENABLED: bool = True
+    """Enable periodic satellite health checks"""
+    SATELLITE_HEALTH_CHECK_INTERVAL_HOURS: int = 1
+    """Interval in hours between satellite health checks"""
+
     # Report Generation
     REPORTS_DIR: str = "reports"
     """Directory path for storing generated reports"""
